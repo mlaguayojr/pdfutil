@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ public class pdfgui {
 		JFrame f = new JFrame("PDF Merger");
 		JPanel p = new JPanel(null);
 
-
 		JMenuBar mb = new JMenuBar();
 		f.setJMenuBar(mb);
 
@@ -74,13 +74,17 @@ public class pdfgui {
 
 		});
 
+		JLabel l0 = new JLabel("Files will be merged in the order that you add them! Double click each file to open!");
+		l0.setLayout(null);
+		l0.setBounds(10,5,400,25);
+		
 		l1 = new JLabel("Merge PDFs: "+files.size());
-		l1.setBounds(10,10,100,25); //x, y, width, height
-
+		l1.setBounds(10,20,300,25); //x, y, width, height
+		
 		JList pdfs = new JList(files.toArray());
 
 		JButton rem = new JButton("Remove");
-		rem.setBounds(320,65, 100, 25);
+		rem.setBounds(320,75, 100, 25);
 		rem.addActionListener(new ActionListener(){
 
 			@Override
@@ -111,32 +115,28 @@ public class pdfgui {
 					file+=".pdf";
 				}
 
-				try {
-					//pdf.exe needs 3 params
-					if(files.size()==2){
-						Process p = new ProcessBuilder(System.getProperty("user.dir")+"\\pdf.exe",file,files.get(0).toString(),files.get(1).toString()).start();
-					}else{
-						Process p = new ProcessBuilder(System.getProperty("user.dir")+"\\pdf.exe",file,files.get(0).toString(),files.get(1).toString()).start();
-						for(int i = 2; i < files.size(); i++){
-							p = new ProcessBuilder(System.getProperty("user.dir")+"\\pdf.exe",file,files.get(i).toString(),"").start();
-						}
-					}
-					
-					if(new File(file).exists()){
-						JOptionPane.showMessageDialog(f, file+" was saved!");
-					}
+				Process p;
+				String line = "-merge -o "+file+" -i";
+				for(String a: files){
+					line+=" "+a;
+				}
 
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
+				try {
+					p = new ProcessBuilder(System.getProperty("user.dir")+"\\pdf.exe",line).start();
+					p.waitFor();
+				} catch (IOException | InterruptedException e1) {
 					e1.printStackTrace();
+				}
+				if(new File(file).exists()){
+					JOptionPane.showMessageDialog(null, "All files were written to "+file+"!");
 				}
 			}
 
 		});
-		merge.setBounds(320,95, 100, 25);
+		merge.setBounds(320, 105, 100, 25);
 
 		JButton add = new JButton("Add File");
-		add.setBounds(320,35, 100, 25);
+		add.setBounds(320,45, 100, 25);
 		add.addActionListener(new ActionListener(){
 
 			@Override
@@ -151,7 +151,7 @@ public class pdfgui {
 				fc.setDialogTitle("Browse For File");
 				fc.setCurrentDirectory(new File(System.getProperty("user.home")));
 				fc.setMultiSelectionEnabled(false);
-				fc.setFileFilter(new FileNameExtensionFilter("PDF Document","pdf"));
+				fc.setFileFilter(new FileNameExtensionFilter("PDF Document (.pdf)","pdf"));
 				fc.setAcceptAllFileFilterUsed(false);
 				fc.showOpenDialog(null);
 				if(fc.accept(fc.getSelectedFile())){
@@ -204,14 +204,49 @@ public class pdfgui {
 
 		});
 
+		pdfs.addMouseListener(new MouseListener(){
+
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				pdfs.clearSelection();
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+
+
 		pdfs.setBackground(Color.white);
 		pdfs.setAutoscrolls(true);
 
 		JScrollPane s = new JScrollPane(pdfs);
 		s.setViewportView(pdfs);
 		s.setAutoscrolls(true);
-		s.setBounds(10, 35, 300, 300);
+		s.setBounds(10, 45, 300, 300);
 
+		p.add(l0);
 		p.add(l1);
 		p.add(s);
 		p.add(add);
@@ -223,7 +258,7 @@ public class pdfgui {
 
 		f.add(p);
 		f.setVisible(true);
-		f.setSize(new Dimension(440, 400)); //w, h
+		f.setSize(new Dimension(440, 410)); //w, h
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setLocationRelativeTo(null);
 		f.setResizable(false);
